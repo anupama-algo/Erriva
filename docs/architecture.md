@@ -201,3 +201,76 @@ The recognition process is rule-based and works offline.
 - Existing ErrorKnowledge entries should be reused.
 - New runtime error types should be easy to add later.
 - Recognition behavior must be verified with JUnit tests.
+
+
+## 10. Compiler Error Recognition
+
+### 10.1 Purpose
+
+The compiler recognition system identifies supported Java
+compilation errors and connects them to the error knowledge
+repository.
+
+It uses deterministic pattern matching and works offline.
+
+### 10.2 Supported Compiler Errors
+
+The initial compiler recognizer supports five error types:
+
+1. Cannot Find Symbol
+   - Pattern: cannot find symbol
+   - Knowledge ID: COMPILER_CANNOT_FIND_SYMBOL
+
+2. Incompatible Types
+   - Pattern: incompatible types:
+   - Knowledge ID: COMPILER_INCOMPATIBLE_TYPES
+
+3. Missing Semicolon
+   - Pattern: ';' expected
+   - Knowledge ID: COMPILER_SEMICOLON_EXPECTED
+
+4. Missing Return Statement
+   - Pattern: missing return statement
+   - Knowledge ID: COMPILER_MISSING_RETURN
+
+5. Uninitialized Variable
+   - Pattern: variable ... might not have been initialized
+   - Knowledge ID: COMPILER_UNINITIALIZED_VARIABLE
+
+### 10.3 Recognition Process
+
+1. Receive a Java compiler error message.
+2. Reject null, empty, or whitespace-only input.
+3. Search for a supported compiler diagnostic.
+4. Match the diagnostic to its knowledge ID.
+5. Retrieve the corresponding ErrorKnowledge entry.
+6. Construct an ErrorAnalysis object.
+7. Return the analysis to the calling service.
+
+### 10.4 Recognition Rules
+
+- Recognition is case-sensitive.
+- Patterns must match actual compiler diagnostic lines.
+- Compiler diagnostics may contain file names and line numbers.
+- The recognizer must not classify ordinary source code
+  or unrelated text as a compiler error.
+- Runtime exception messages must not be classified as
+  compiler errors.
+- Unknown compiler messages remain unsupported.
+- Missing knowledge entries produce an explicit error.
+- The recognizer never executes user-provided code.
+
+### 10.5 Design Principles
+
+CompilerErrorRecognizer implements the ErrorRecognizer
+interface.
+
+It uses ErrorKnowledgeRepository for knowledge lookup
+and returns ErrorAnalysis objects.
+
+CompilerAnalysisService will initialize the repository,
+register compiler knowledge, and provide safe fallback
+behavior for invalid or unsupported input.
+
+The recognition engine remains independent of the
+Chrome extension user interface.
