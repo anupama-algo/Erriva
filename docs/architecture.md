@@ -103,3 +103,53 @@ The extension will not claim to execute Java code or invoke Java classes directl
 - Clear and actionable debugging guidance
 - Maintainable and testable components
 - Honest handling of unrecognized errors
+
+
+## 8. Error Knowledge System
+
+The Java engine separates reusable error knowledge from the analysis
+of a specific error message.
+
+### 8.1 ErrorKnowledge
+
+An immutable Java model that stores:
+
+- Unique error ID
+- Error category
+- Error title
+- Plain-English explanation
+- Possible causes
+- Debugging steps
+- Incorrect Java code example
+- Corrected Java code example
+
+Unlike ErrorAnalysis, ErrorKnowledge does not store the original
+user-submitted error message.
+
+### 8.2 ErrorKnowledgeRepository
+
+A Java class responsible for storing and retrieving predefined
+ErrorKnowledge entries.
+
+Knowledge entries will be indexed by unique error IDs using a Map.
+The repository will support lookup by ID and retrieval of all entries.
+
+The initial repository will contain common Java compiler and
+runtime error families.
+
+### 8.3 Recognition Integration
+
+Future recognizer implementations will identify an error family
+from a pasted Java error message, retrieve its knowledge entry,
+and construct an ErrorAnalysis result.
+
+Unrecognized messages will be handled by a fallback mechanism.
+
+### 8.4 Design Principles
+
+- Offline-first: no network requests are required for error knowledge.
+- Reusable: one knowledge entry can explain multiple error messages.
+- Immutable: knowledge entries cannot be modified after creation.
+- Extensible: new error families can be added without redesigning
+  the ErrorAnalysis model.
+- Testable: repository entries and lookups will have JUnit tests.
