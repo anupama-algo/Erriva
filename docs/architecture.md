@@ -153,3 +153,51 @@ Unrecognized messages will be handled by a fallback mechanism.
 - Extensible: new error families can be added without redesigning
   the ErrorAnalysis model.
 - Testable: repository entries and lookups will have JUnit tests.
+
+## 9. Runtime Error Recognition
+
+### 9.1 Purpose
+
+The runtime recognition system identifies supported Java runtime
+exceptions from error messages and connects them to the Error
+Knowledge System.
+
+The recognition process is rule-based and works offline.
+
+### 9.2 Supported Runtime Errors
+
+| Java Exception | Knowledge ID |
+| --- | --- |
+| NullPointerException | RUNTIME_NULL_POINTER |
+| ArrayIndexOutOfBoundsException | RUNTIME_ARRAY_INDEX |
+| ArithmeticException | RUNTIME_ARITHMETIC |
+| NumberFormatException | RUNTIME_NUMBER_FORMAT |
+| ClassCastException | RUNTIME_CLASS_CAST |
+
+### 9.3 Recognition Process
+
+1. Receive a Java error message.
+2. Validate that the input is not null or blank.
+3. Identify a supported exception name.
+4. Match the exception to its knowledge ID.
+5. Retrieve the corresponding ErrorKnowledge entry.
+6. Construct an ErrorAnalysis result.
+
+### 9.4 Recognition Rules
+
+- Recognize supported exception class names, not arbitrary substrings.
+- Support common Java exception formats, including package-qualified names.
+- Avoid matching exception names embedded inside longer identifiers.
+- Do not treat unrelated mentions of exception names as confirmed errors.
+- Preserve the original error message in the analysis result.
+- Return a safe fallback for unsupported or unrecognized messages.
+- Never execute user-provided Java code.
+
+### 9.5 Design Principles
+
+- Runtime recognition must work without internet access.
+- Recognition logic must be separate from stored error knowledge.
+- The recognizer must implement the ErrorRecognizer interface.
+- Existing ErrorKnowledge entries should be reused.
+- New runtime error types should be easy to add later.
+- Recognition behavior must be verified with JUnit tests.
