@@ -274,3 +274,66 @@ behavior for invalid or unsupported input.
 
 The recognition engine remains independent of the
 Chrome extension user interface.
+
+
+## 11. Java Stack Trace and Error Context Extraction
+
+### Purpose
+
+Erriva extracts structured context from pasted Java runtime
+stack traces without executing user code.
+
+### StackTraceFrame
+
+An immutable model representing one stack trace frame.
+
+Fields:
+- className: String
+- methodName: String
+- fileName: String (nullable)
+- lineNumber: int (-1 when unavailable)
+
+### ErrorContext
+
+An immutable model representing extracted error information.
+
+Fields:
+- exceptionType: String (nullable when unavailable)
+- exceptionMessage: String (nullable when unavailable)
+- frames: List<StackTraceFrame>
+
+The frames list preserves stack trace order and is exposed
+as an unmodifiable defensive copy.
+
+### JavaStackTraceParser
+
+The parser reads plain-text Java stack traces and extracts:
+- Exception type
+- Exception message
+- Fully qualified class names
+- Method names
+- Source file names
+- Source line numbers
+- Multiple stack frames in their original order
+
+### Parsing Rules
+
+1. Do not execute submitted code.
+2. Handle null, blank, and incomplete input safely.
+3. Return an empty context when no information is recognized.
+4. Skip malformed stack frames without crashing.
+5. Preserve the original order of valid frames.
+6. Use null for unavailable file names.
+7. Use -1 for unavailable line numbers.
+8. Recognize Unknown Source and Native Method locations.
+9. Treat the first frame as the topmost reported call,
+   not necessarily the root cause of the bug.
+10. Keep context extraction separate from error recognition.
+
+### Future Integration
+
+A context extraction service will expose the parsed context
+to other Erriva components.
+
+The Chrome extension will eventually display this information
+alongside plain-English error explanations.
