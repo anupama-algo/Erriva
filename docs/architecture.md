@@ -337,3 +337,69 @@ to other Erriva components.
 
 The Chrome extension will eventually display this information
 alongside plain-English error explanations.
+
+
+## 12. Unified Java Error Analysis
+
+### Purpose
+
+The unified analysis layer coordinates the existing Java compiler
+error recognition, runtime error recognition, and stack trace
+context extraction components.
+
+It provides one entry point for analyzing Java error messages
+without duplicating the recognition rules.
+
+### Main Components
+
+1. UnifiedAnalysisResult
+   - Immutable model containing an ErrorAnalysis and an ErrorContext.
+   - Preserves the original analysis category, explanation,
+     possible causes, debugging steps, and available stack frames.
+   - Rejects null analysis and context objects.
+
+2. UnifiedErrorAnalysisService
+   - Coordinates CompilerAnalysisService,
+     RuntimeAnalysisService, and ContextExtractionService.
+   - Provides a single analyze(String) method.
+   - Uses existing supports(String) methods to select a recognizer.
+
+### Recognition Priority
+
+The unified service applies the following order:
+
+1. If the compiler service supports the input, use compiler analysis.
+2. Otherwise, if the runtime service supports the input,
+   use runtime analysis.
+3. Otherwise, return a safe UNKNOWN analysis.
+
+Compiler recognition takes priority if both services support
+the same input.
+
+### Context Extraction
+
+ContextExtractionService runs independently of the selected
+error category.
+
+It extracts available exception information and stack frames,
+including class names, method names, source filenames, and
+line numbers.
+
+An UNKNOWN analysis may still contain useful stack trace context.
+
+### Input Handling
+
+- Null, empty, and whitespace-only inputs return an UNKNOWN analysis.
+- Unsupported inputs return an UNKNOWN analysis.
+- Invalid inputs must not cause the unified service to crash.
+- The original input is preserved for nonblank messages.
+- No submitted Java code is executed.
+
+### Design Principles
+
+- Reuse existing recognition and parsing components.
+- Keep the combined result immutable.
+- Maintain offline-first operation.
+- Avoid AI APIs, databases, and network dependencies.
+- Keep Java engine logic independent from the Chrome extension UI.
+- Verify the integration with JUnit 5 tests.
