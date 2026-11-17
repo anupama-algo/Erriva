@@ -3,6 +3,7 @@ package com.erriva.service;
 
 import com.erriva.model.ErrorAnalysis;
 import com.erriva.model.ErrorContext;
+import com.erriva.model.InputValidationResult;
 import com.erriva.model.UnifiedAnalysisResult;
 
 /**
@@ -16,11 +17,13 @@ public final class UnifiedErrorAnalysisService {
     private final CompilerAnalysisService compilerService;
     private final RuntimeAnalysisService runtimeService;
     private final ContextExtractionService contextService;
+    private final ErrorInputValidator inputValidator;
 
     public UnifiedErrorAnalysisService() {
         this.compilerService = new CompilerAnalysisService();
         this.runtimeService = new RuntimeAnalysisService();
         this.contextService = new ContextExtractionService();
+        this.inputValidator = new ErrorInputValidator();
     }
 
     /**
@@ -28,30 +31,45 @@ public final class UnifiedErrorAnalysisService {
      *
      * @param errorMessage the Java error message
      * @return a combined error analysis and context
+     * @throws IllegalArgumentException if input exceeds the limit
      */
     public UnifiedAnalysisResult analyze(String errorMessage) {
 
+        InputValidationResult validation =
+                inputValidator.validate(errorMessage);
+
+        // Preserve existing behavior for missing input.
+        if (errorMessage == null || errorMessage.isBlank()) {
+            ErrorAnalysis analysis =
+                    runtimeService.analyze(errorMessage);
+
+            ErrorContext context =
+                    contextService.extract(errorMessage);
+
+            return new UnifiedAnalysisResult(analysis, context);
+        }
+
+        // Reject oversized input before recognition or parsing.
+        if (!validation.isValid()) {
+            throw new IllegalArgumentException(
+                    validation.getMessage()
+            );
+        }
+
         ErrorAnalysis analysis;
 
-        // Handle null, empty, and whitespace-only input first.
-        if (errorMessage == null || errorMessage.isBlank()) {
-            analysis = runtimeService.analyze(errorMessage);
-
-        } else if (compilerService.supports(errorMessage)) {
-            // Compiler recognition has first priority.
+        if (compilerService.supports(errorMessage)) {
             analysis = compilerService.analyze(errorMessage);
 
         } else if (runtimeService.supports(errorMessage)) {
-            // Runtime recognition has second priority.
             analysis = runtimeService.analyze(errorMessage);
 
         } else {
-            // Reuse the existing UNKNOWN fallback.
             analysis = runtimeService.analyze(errorMessage);
         }
 
-        // Extract context independently of the analysis category.
-        ErrorContext context = contextService.extract(errorMessage);
+        ErrorContext context =
+                contextService.extract(errorMessage);
 
         return new UnifiedAnalysisResult(analysis, context);
     }

@@ -105,4 +105,63 @@ class UnifiedErrorAnalysisEdgeCaseTest {
                         unknown.getAnalysis().getCategory())
         );
     }
+
+
+    @Test
+    void acceptsInputExactlyAtMaximumLength() {
+        String input = "x".repeat(
+                ErrorInputValidator.MAX_INPUT_LENGTH
+        );
+
+        UnifiedAnalysisResult result = service.analyze(input);
+
+        assertNotNull(result);
+        assertEquals(
+                ErrorCategory.UNKNOWN,
+                result.getAnalysis().getCategory()
+        );
+    }
+
+    @Test
+    void rejectsInputExceedingMaximumLength() {
+        String input = "x".repeat(
+                ErrorInputValidator.MAX_INPUT_LENGTH + 1
+        );
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> service.analyze(input)
+        );
+
+        assertTrue(
+                exception.getMessage().contains("100000")
+        );
+    }
+
+    @Test
+    void rejectsOversizedRecognizableRuntimeError() {
+        String input =
+                "java.lang.NullPointerException"
+                + "x".repeat(
+                        ErrorInputValidator.MAX_INPUT_LENGTH
+                );
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.analyze(input)
+        );
+    }
+
+    @Test
+    void preservesUnknownFallbackForBlankInput() {
+        UnifiedAnalysisResult result = service.analyze(" \n\t ");
+
+        assertNotNull(result);
+        assertEquals(
+                ErrorCategory.UNKNOWN,
+                result.getAnalysis().getCategory()
+        );
+        assertNotNull(result.getContext());
+    }
+
 }
