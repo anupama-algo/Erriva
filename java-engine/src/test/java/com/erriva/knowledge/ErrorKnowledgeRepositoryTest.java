@@ -45,13 +45,14 @@ class ErrorKnowledgeRepositoryTest {
     }
 
     @Test
-    void registersFiveCompilerErrors() {
+    void registersEightCompilerErrors() {
         ErrorKnowledgeRepository repository =
                 new ErrorKnowledgeRepository();
 
         CompilerErrorKnowledge.registerAll(repository);
 
-        assertEquals(5, repository.count());
+        assertEquals(8, repository.count());
+
         assertTrue(repository.findById(
                 "COMPILER_CANNOT_FIND_SYMBOL").isPresent());
         assertTrue(repository.findById(
@@ -62,18 +63,25 @@ class ErrorKnowledgeRepositoryTest {
                 "COMPILER_MISSING_RETURN").isPresent());
         assertTrue(repository.findById(
                 "COMPILER_UNINITIALIZED_VARIABLE").isPresent());
+
+        assertTrue(repository.findById(
+                "COMPILER_ILLEGAL_START").isPresent());
+        assertTrue(repository.findById(
+                "COMPILER_REACHED_END_OF_FILE").isPresent());
+        assertTrue(repository.findById(
+                "COMPILER_NON_STATIC_REFERENCE").isPresent());
     }
 
     @Test
-    void registersTenErrorsTogether() {
+    void registersThirteenErrorsTogether() {
         ErrorKnowledgeRepository repository =
                 new ErrorKnowledgeRepository();
 
         RuntimeErrorKnowledge.registerAll(repository);
         CompilerErrorKnowledge.registerAll(repository);
 
-        assertEquals(10, repository.count());
-        assertEquals(10, repository.findAll().size());
+        assertEquals(13, repository.count());
+        assertEquals(13, repository.findAll().size());
     }
 
     @Test

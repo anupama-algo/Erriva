@@ -38,6 +38,46 @@ class CompilerErrorRecognizerTest {
     }
 
     @Test
+    void recognizesIllegalStartOfExpression() {
+        String message =
+                "Main.java:8: error: illegal start of expression";
+
+        assertTrue(recognizer.supports(message));
+
+        ErrorAnalysis result = recognizer.analyze(message);
+
+        assertEquals(ErrorCategory.COMPILER, result.getCategory());
+        assertNotNull(result.getExplanation());
+    }
+
+    @Test
+    void recognizesReachedEndOfFileWhileParsing() {
+        String message =
+                "Main.java:15: error: reached end of file while parsing";
+
+        assertTrue(recognizer.supports(message));
+
+        ErrorAnalysis result = recognizer.analyze(message);
+
+        assertEquals(ErrorCategory.COMPILER, result.getCategory());
+        assertNotNull(result.getExplanation());
+    }
+
+    @Test
+    void recognizesNonStaticReferenceFromStaticContext() {
+        String message =
+                "Main.java:10: error: non-static variable count "
+                + "cannot be referenced from a static context";
+
+        assertTrue(recognizer.supports(message));
+
+        ErrorAnalysis result = recognizer.analyze(message);
+
+        assertEquals(ErrorCategory.COMPILER, result.getCategory());
+        assertNotNull(result.getExplanation());
+    }
+
+    @Test
     void rejectsNullInput() {
         assertFalse(recognizer.supports(null));
 
@@ -114,7 +154,7 @@ class CompilerErrorRecognizerTest {
     @Test
     void rejectsUnsupportedCompilerDiagnostic() {
         String message =
-                "Main.java:8: error: illegal start of expression";
+                "Main.java:8: error: package example.missing does not exist";
 
         assertFalse(recognizer.supports(message));
 

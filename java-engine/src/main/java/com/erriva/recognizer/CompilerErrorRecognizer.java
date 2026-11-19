@@ -35,6 +35,16 @@ public final class CompilerErrorRecognizer implements ErrorRecognizer {
 
         addRule("variable\\s+\\S+\\s+might not have been initialized",
                 "COMPILER_UNINITIALIZED_VARIABLE");
+
+        addRule("illegal start of expression",
+                "COMPILER_ILLEGAL_START");
+
+        addRule("reached end of file while parsing",
+                "COMPILER_REACHED_END_OF_FILE");
+
+        addRule("non-static (?:variable|method)\\s+.+?\\s+cannot be referenced from a static context",
+                "COMPILER_NON_STATIC_REFERENCE");
+
     }
 
     private void addRule(String diagnostic, String knowledgeId) {

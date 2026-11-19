@@ -125,5 +125,90 @@ public final class CompilerErrorKnowledge {
                 "int score = 0;\n"
                         + "System.out.println(score);"
         ));
+
+
+        repository.add(new ErrorKnowledge(
+                "COMPILER_ILLEGAL_START",
+                ErrorCategory.COMPILER,
+                "Illegal Start of Expression",
+                "The compiler encountered code that is not valid in the current location.",
+                List.of(
+                        "A method was declared inside another method.",
+                        "A brace is missing or misplaced.",
+                        "An expression contains invalid Java syntax."
+                ),
+                List.of(
+                        "Check the reported line and the lines above it.",
+                        "Verify that braces and parentheses are balanced.",
+                        "Check whether methods and statements are placed correctly.",
+                        "Compile again after correcting the syntax."
+                ),
+                "public void first() {\n"
+                        + "    public void second() {}\n"
+                        + "}",
+                "public void first() {\n"
+                        + "    second();\n"
+                        + "}\n"
+                        + "public void second() {}"
+        ));
+
+        repository.add(new ErrorKnowledge(
+                "COMPILER_REACHED_END_OF_FILE",
+                ErrorCategory.COMPILER,
+                "Reached End of File While Parsing",
+                "The compiler reached the end of the source file while expecting more code.",
+                List.of(
+                        "A closing brace is missing.",
+                        "A class or method body was not closed.",
+                        "An earlier syntax error left the code incomplete."
+                ),
+                List.of(
+                        "Check the opening and closing braces.",
+                        "Review the end of the file.",
+                        "Verify that every class and method body is closed.",
+                        "Compile again after fixing the incomplete structure."
+                ),
+                "class Main {\n"
+                        + "    public static void main(String[] args) {\n"
+                        + "        System.out.println(\"Hello\");\n"
+                        + "    }\n",
+                "class Main {\n"
+                        + "    public static void main(String[] args) {\n"
+                        + "        System.out.println(\"Hello\");\n"
+                        + "    }\n"
+                        + "}"
+        ));
+
+        repository.add(new ErrorKnowledge(
+                "COMPILER_NON_STATIC_REFERENCE",
+                ErrorCategory.COMPILER,
+                "Non-static Reference from Static Context",
+                "An instance member was accessed without an object from a static context.",
+                List.of(
+                        "An instance variable was accessed directly from a static method.",
+                        "An instance method was called without creating an object.",
+                        "Static and instance members were confused."
+                ),
+                List.of(
+                        "Identify whether the referenced member is static or instance-based.",
+                        "Create an object when accessing an instance member.",
+                        "Use static only when the member logically belongs to the class.",
+                        "Check the member declaration and the calling code."
+                ),
+                "class Main {\n"
+                        + "    int count = 10;\n"
+                        + "    public static void main(String[] args) {\n"
+                        + "        System.out.println(count);\n"
+                        + "    }\n"
+                        + "}",
+                "class Main {\n"
+                        + "    int count = 10;\n"
+                        + "    public static void main(String[] args) {\n"
+                        + "        Main obj = new Main();\n"
+                        + "        System.out.println(obj.count);\n"
+                        + "    }\n"
+                        + "}"
+        ));
+
     }
 }

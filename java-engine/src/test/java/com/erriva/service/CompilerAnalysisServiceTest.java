@@ -35,7 +35,7 @@ class CompilerAnalysisServiceTest {
     @Test
     void returnsUnknownForUnsupportedError() {
         String message =
-                "Main.java:4: error: illegal start of expression";
+                "Main.java:4: error: package example.missing does not exist";
 
         assertFalse(service.supports(message));
 
