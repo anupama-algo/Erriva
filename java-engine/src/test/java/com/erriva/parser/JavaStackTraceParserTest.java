@@ -248,4 +248,23 @@ class JavaStackTraceParserTest {
         assertEquals(1, context.getFrameCount());
         assertEquals(42, context.getFirstFrame().getLineNumber());
     }
+
+    @Test
+    void shouldParseModernJavaModuleStackFrame() {
+        String trace = """
+                java.lang.RuntimeException: Failure
+                    at java.base/java.lang.Thread.run(Thread.java:1583)
+                """;
+
+        ErrorContext context = parser.parse(trace);
+
+        assertEquals(1, context.getFrameCount());
+
+        StackTraceFrame frame = context.getFirstFrame();
+
+        assertEquals("java.lang.Thread", frame.getClassName());
+        assertEquals("run", frame.getMethodName());
+        assertEquals("Thread.java", frame.getFileName());
+        assertEquals(1583, frame.getLineNumber());
+    }
 }

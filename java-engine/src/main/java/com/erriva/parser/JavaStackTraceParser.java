@@ -66,6 +66,14 @@ public final class JavaStackTraceParser {
             }
 
             String className = frameMatcher.group(1);
+
+            // Remove Java module or class-loader prefixes, if present.
+            int moduleSeparator = className.lastIndexOf('/');
+
+            if (moduleSeparator >= 0) {
+                className = className.substring(moduleSeparator + 1);
+            }
+
             String methodName = frameMatcher.group(2);
             String source = frameMatcher.group(3);
 
