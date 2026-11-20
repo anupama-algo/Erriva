@@ -101,4 +101,126 @@ class CompilerErrorRecognizerIntegrationTest {
 
         assertEquals(message, result.getOriginalMessage());
     }
+
+    @Test
+    void recognizesWindowsFilePathDiagnostic() {
+        String message =
+                "C:\\Users\\Student\\Projects\\Main.java:12: error: cannot find symbol";
+
+        assertTrue(recognizer.supports(message));
+
+        ErrorAnalysis result = recognizer.analyze(message);
+
+        assertEquals(ErrorCategory.COMPILER, result.getCategory());
+        assertEquals(message, result.getOriginalMessage());
+    }
+
+    @Test
+    void recognizesMultilineCannotFindSymbolDiagnostic() {
+        String message =
+                "Main.java:5: error: cannot find symbol\n"
+                + "        System.out.println(total);\n"
+                + "                           ^\n"
+                + "  symbol:   variable total\n"
+                + "  location: class Main\n"
+                + "1 error";
+
+        assertTrue(recognizer.supports(message));
+
+        ErrorAnalysis result = recognizer.analyze(message);
+
+        assertEquals(ErrorCategory.COMPILER, result.getCategory());
+        assertEquals(message, result.getOriginalMessage());
+        assertFalse(result.getExplanation().isBlank());
+    }
+
+    @Test
+    void recognizesIllegalStartOfExpressionDiagnostic() {
+        String message =
+                "Main.java:8: error: illegal start of expression\n"
+                + "        public void display() {\n"
+                + "        ^\n"
+                + "1 error";
+
+        assertTrue(recognizer.supports(message));
+
+        ErrorAnalysis result = recognizer.analyze(message);
+
+        assertEquals(ErrorCategory.COMPILER, result.getCategory());
+        assertFalse(result.getDebuggingSteps().isEmpty());
+    }
+
+    @Test
+    void recognizesReachedEndOfFileDiagnostic() {
+        String message =
+                "Main.java:15: error: reached end of file while parsing\n"
+                + "}\n"
+                + " ^\n"
+                + "1 error";
+
+        assertTrue(recognizer.supports(message));
+
+        ErrorAnalysis result = recognizer.analyze(message);
+
+        assertEquals(ErrorCategory.COMPILER, result.getCategory());
+        assertFalse(result.getExplanation().isBlank());
+    }
+
+    @Test
+    void recognizesNonStaticVariableDiagnostic() {
+        String message =
+                "Main.java:10: error: non-static variable count "
+                + "cannot be referenced from a static context";
+
+        assertTrue(recognizer.supports(message));
+
+        ErrorAnalysis result = recognizer.analyze(message);
+
+        assertEquals(ErrorCategory.COMPILER, result.getCategory());
+        assertFalse(result.getExplanation().isBlank());
+    }
+
+    @Test
+    void recognizesNonStaticMethodDiagnostic() {
+        String message =
+                "Main.java:10: error: non-static method display() "
+                + "cannot be referenced from a static context";
+
+        assertTrue(recognizer.supports(message));
+
+        ErrorAnalysis result = recognizer.analyze(message);
+
+        assertEquals(ErrorCategory.COMPILER, result.getCategory());
+        assertFalse(result.getExplanation().isBlank());
+    }
+
+    @Test
+    void recognizesFirstSupportedErrorInMultipleDiagnostics() {
+        String message =
+                "Main.java:5: error: cannot find symbol\n"
+                + "        System.out.println(total);\n"
+                + "                           ^\n"
+                + "Main.java:8: error: ';' expected\n"
+                + "2 errors";
+
+        assertTrue(recognizer.supports(message));
+
+        ErrorAnalysis result = recognizer.analyze(message);
+
+        assertEquals(ErrorCategory.COMPILER, result.getCategory());
+        assertEquals(message, result.getOriginalMessage());
+    }
+
+    @Test
+    void rejectsUnsupportedCompilerDiagnostic() {
+        String message =
+                "Main.java:4: error: package example.missing does not exist";
+
+        assertFalse(recognizer.supports(message));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> recognizer.analyze(message)
+        );
+    }
 }
