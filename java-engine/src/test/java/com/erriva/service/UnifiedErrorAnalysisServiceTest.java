@@ -193,4 +193,39 @@ class UnifiedErrorAnalysisServiceTest {
         assertEquals(15,
                 result.getContext().getFirstFrame().getLineNumber());
     }
+
+
+@Test
+void routesUnsupportedCompilerDiagnosticToCompilerFallback() {
+    String input =
+            "Main.java:4: error: package example.missing does not exist";
+
+    UnifiedAnalysisResult result = service.analyze(input);
+
+    assertEquals(ErrorCategory.UNKNOWN,
+            result.getAnalysis().getCategory());
+
+    assertEquals("Unrecognized Compiler Error",
+            result.getAnalysis().getTitle());
+
+    assertEquals(input,
+            result.getAnalysis().getOriginalMessage());
+}
+
+@Test
+void routesCompilerDiagnosticWithSpacesInPathToCompilerFallback() {
+    String input =
+            "C:\\Users\\Anupama Sethi\\Project Folder\\Main.java:4: "
+                    + "error: package example.missing does not exist";
+
+    UnifiedAnalysisResult result = service.analyze(input);
+
+    assertEquals(ErrorCategory.UNKNOWN,
+            result.getAnalysis().getCategory());
+    assertEquals("Unrecognized Compiler Error",
+            result.getAnalysis().getTitle());
+    assertEquals(input,
+            result.getAnalysis().getOriginalMessage());
+}
+
 }

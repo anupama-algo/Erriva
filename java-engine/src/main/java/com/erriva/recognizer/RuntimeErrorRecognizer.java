@@ -8,6 +8,7 @@ import com.erriva.model.ErrorAnalysis;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class RuntimeErrorRecognizer implements ErrorRecognizer {
@@ -43,13 +44,19 @@ public final class RuntimeErrorRecognizer implements ErrorRecognizer {
             return null;
         }
 
+        String selectedKnowledgeId = null;
+        int earliestPosition = Integer.MAX_VALUE;
+
         for (Map.Entry<Pattern, String> rule : recognitionRules.entrySet()) {
-            if (rule.getKey().matcher(errorMessage).find()) {
-                return rule.getValue();
+            Matcher matcher = rule.getKey().matcher(errorMessage);
+
+            if (matcher.find() && matcher.start() < earliestPosition) {
+                earliestPosition = matcher.start();
+                selectedKnowledgeId = rule.getValue();
             }
         }
 
-        return null;
+        return selectedKnowledgeId;
     }
 
     @Override

@@ -6,6 +6,8 @@ import com.erriva.model.ErrorContext;
 import com.erriva.model.InputValidationResult;
 import com.erriva.model.UnifiedAnalysisResult;
 
+import java.util.regex.Pattern;
+
 /**
  * Coordinates Java error recognition and context extraction.
  *
@@ -13,6 +15,11 @@ import com.erriva.model.UnifiedAnalysisResult;
  * compiler errors, runtime errors, and unsupported messages.
  */
 public final class UnifiedErrorAnalysisService {
+
+    private static final Pattern COMPILER_DIAGNOSTIC_PATTERN =
+            Pattern.compile(
+                    "(?m)^.*\\.java:\\d+:\\s*error:.*$"
+            );
 
     private final CompilerAnalysisService compilerService;
     private final RuntimeAnalysisService runtimeService;
@@ -64,7 +71,15 @@ public final class UnifiedErrorAnalysisService {
         } else if (runtimeService.supports(errorMessage)) {
             analysis = runtimeService.analyze(errorMessage);
 
+        } else if (COMPILER_DIAGNOSTIC_PATTERN
+                .matcher(errorMessage)
+                .find()) {
+
+            // Route unsupported compiler diagnostics to compiler fallback.
+            analysis = compilerService.analyze(errorMessage);
+
         } else {
+            // Preserve runtime fallback for unsupported messages.
             analysis = runtimeService.analyze(errorMessage);
         }
 

@@ -55,7 +55,8 @@ class RuntimeErrorRecognizerIntegrationTest {
 
     @Test
     void retrievesCorrectKnowledgeEntry() {
-        String message = "java.lang.NumberFormatException: For input string: \"abc\"";
+        String message =
+                "java.lang.NumberFormatException: For input string: \"abc\"";
 
         ErrorAnalysis result = recognizer.analyze(message);
 
@@ -77,5 +78,23 @@ class RuntimeErrorRecognizerIntegrationTest {
                 IllegalArgumentException.class,
                 () -> recognizer.analyze(message)
         );
+    }
+
+    @Test
+    void recognizesEarliestExceptionInMultipleDiagnostics() {
+        String firstMessage =
+                "java.lang.ArithmeticException: / by zero";
+
+        String secondMessage =
+                "java.lang.NullPointerException";
+
+        String message = firstMessage + "\n" + secondMessage;
+
+        ErrorAnalysis expected = recognizer.analyze(firstMessage);
+        ErrorAnalysis result = recognizer.analyze(message);
+
+        assertEquals(expected.getTitle(), result.getTitle());
+        assertEquals(ErrorCategory.RUNTIME, result.getCategory());
+        assertEquals(message, result.getOriginalMessage());
     }
 }
